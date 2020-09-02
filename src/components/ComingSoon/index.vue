@@ -4,9 +4,9 @@
         <div v-else id="comingSoon" :style='myStyle'>
             <ul>
                 <li v-for='film in movieList' :key='film.id'>
-                    <div class=pic_show><img :src="showImg(film.img)"></div>
+                    <div class=pic_show @click='handleToDetail(film.id)'><img :src="showImg(film.img)"></div>
                     <div class='info_list'>
-                        <h2>{{ film.nm }}</h2>
+                        <h2 @click='handleToDetail(film.id)'>{{ film.nm }}</h2>
                         <p><span class='person'>{{ film.wish }}</span>人想看</p>
                         <p v-if='film.star'>主演：{{ film.star }}</p>
                         <p v-else>主演：不详</p>
@@ -37,6 +37,9 @@ export default {
     methods: {
         showImg(data){
             return data.replace('w.h', '64.90')
+        },
+        handleToDetail(id){
+            this.$router.push(`detail/2/${id}`);
         }
     },
     mounted(){
@@ -54,7 +57,8 @@ export default {
             this.$nextTick(() => {
                 new BScroll('#comingSoon', {
                     fade: true,
-                    interactive: false
+                    interactive: false,
+                    click: true
                 })
             })
         })
