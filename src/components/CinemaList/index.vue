@@ -1,28 +1,31 @@
 <template>
     <div class='cinema_body'>
         <Loading v-if='isLoading'></Loading>
-        <ul v-else>
-            <li v-for='cinema in cinemas' :key='cinema.cinemaId'>
-                <div>
-                    <span>{{ cinema.name }}</span>
-                    <span class='q'><span class='price'>{{ showPrice(cinema.lowPrice) }}</span>元起</span>
-                </div>
-                <div class='address'>
-                    <span id='cinemaAddress'>{{ cinema.address }}</span>
-                    <span>{{ showDistance(cinema.Distance) }}km</span>
-                </div>
-                <div class='card'>
-                    <div>小吃</div>
-                    <div>折扣卡</div>
-                </div>
-            </li>
-        </ul>
+        <div v-else id='listWrapper' :style='myStyle'>
+            <ul>
+                <li v-for='cinema in cinemas' :key='cinema.cinemaId'>
+                    <div>
+                        <span>{{ cinema.name }}</span>
+                        <span class='q'><span class='price'>{{ showPrice(cinema.lowPrice) }}</span>元起</span>
+                    </div>
+                    <div class='address'>
+                        <span id='cinemaAddress'>{{ cinema.address }}</span>
+                        <span>{{ showDistance(cinema.Distance) }}km</span>
+                    </div>
+                    <div class='card'>
+                        <div>小吃</div>
+                        <div>折扣卡</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
 import { MessageBox } from 'mint-ui'
+import BScroll from 'better-scroll'
 
 export default {
     name: 'CinemaList',
@@ -31,7 +34,10 @@ export default {
             cinemas: [],
             isLoading: true,
             isUpdated: false,
-            oldCityId: -1
+            oldCityId: -1,
+            myStyle: {
+                height: '0px'
+            }
         }
     },
     methods: {
@@ -57,10 +63,18 @@ export default {
                 this.cinemas = res.data.data.cinemas
                 //隐藏Loading组件
                 this.isLoading = false;
+                this.$nextTick(() => {
+                    new BScroll('#listWrapper', {
+                        fade: true,
+                        interactive: false,
+                        click: true
+                    })
+                })
             })
         }
     },
     mounted(){
+        this.myStyle.height = document.documentElement.clientHeight - 147 + 'px';
         var cityId = this.$store.state.city.id;
         // cityId初始值为-1，表示用户还没进行定位
         if(cityId == -1){
@@ -87,6 +101,13 @@ export default {
                 this.cinemas = res.data.data.cinemas
                 //隐藏Loading组件
                 this.isLoading = false;
+                this.$nextTick(() => {
+                    new BScroll('#listWrapper', {
+                        fade: true,
+                        interactive: false,
+                        click: true
+                    })
+                })
             })
         }
     }

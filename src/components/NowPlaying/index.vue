@@ -5,9 +5,9 @@
             <ul>
                 <span id='update' :style='updateStyle'>{{ message }}</span>
                 <li v-for='film in movieList' :key='film.id'>
-                    <div class='pic_show' @click='handleToDetail'><img :src="showImg(film.img)"></div>
+                    <div class='pic_show' @click='handleToDetail(film.id)'><img :src="showImg(film.img)"></div>
                     <div class='info_list'>
-                        <h2><span>{{ film.nm }}</span><img v-if='film.version == "v3d imax"' src='@/assets/3D.png' class='3D'></h2>
+                        <h2 @click='handleToDetail(film.id)'><span>{{ film.nm }}</span><img v-if='film.version == "v3d imax"' src='@/assets/3D.png' class='3D'></h2>
                         <p v-if='film.sc'>观众评分：<span class='grade'>{{ film.sc }}</span></p>
                         <p v-else>暂无评分</p>
                         <p v-if='film.star'>主演：{{ film.star }}</p>
@@ -45,8 +45,8 @@ export default {
         showImg(data){
             return data.replace('w.h', '64.90');
         },
-        handleToDetail(){
-            console.log('toDetail');
+        handleToDetail(id){
+            this.$router.push(`detail/1/${id}`);
         }
     },
     mounted(){
