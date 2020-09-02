@@ -1,17 +1,17 @@
 <template>
-    <div id='main'>
-        <Header></Header>
+    <div id='main' :style='myStyle'>
+        <Header ref='myheader'></Header>
         <div id='content'>
             <div class='movie_menu'>
                 <router-link to="/movie/city" tag='div' activeClass='active' class='city_name'>
-                    <span>定位</span><i class='iconfont icon-below-s'></i>
+                    <span>{{ $store.state.city.nm }}</span><i class='iconfont icon-below-s'></i>
                 </router-link>
                 <div class='hot_switch'>
                     <router-link to="/movie/nowPlaying" tag='div' activeClass='active' class='hot_item'>正在热映</router-link>
                     <router-link to="/movie/comingSoon" tag='div' activeClass='active' class='hot_item'>即将上映</router-link>
                 </div>
                 <router-link to="/movie/search" tag='div' activeClass='active' class='search_entry'>
-                        <i class='iconfont icon-sousuo'></i>
+                            <i class='iconfont icon-sousuo'></i>
                 </router-link>
             </div>
             <keep-alive>
@@ -31,6 +31,17 @@ export default {
     components: {
         Header,
         TabBar
+    },
+    data(){
+        return {
+            myStyle: {
+                height: '0px'
+            }
+        }
+    },
+    mounted(){
+        // document.documentElement.clientHeight --- 当前设备屏幕的高度
+        this.myStyle.height = document.documentElement.clientHeight + 'px';
     }
 }
 </script>

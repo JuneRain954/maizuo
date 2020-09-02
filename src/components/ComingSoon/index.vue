@@ -1,29 +1,37 @@
 <template>
     <div class='movie_body'>
-        <ul>
-            <li v-for='film in movieList' :key='film.id'>
-                <div class=pic_show><img :src="showImg(film.img)"></div>
-                <div class='info_list'>
-                    <h2>{{ film.nm }}</h2>
-                    <p><span class='person'>{{ film.wish }}</span>人想看</p>
-                    <p v-if='film.star'>主演：{{ film.star }}</p>
-                    <p v-else>主演：不详</p>
-                    <p>{{ film.rt }}上映</p>
-                </div>
-                <div class='btn_pre'>预售</div>
-            </li>
-        </ul>
+        <Loading v-if='isLoading'></Loading>
+        <div v-else id="comingSoon" :style='myStyle'>
+            <ul>
+                <li v-for='film in movieList' :key='film.id'>
+                    <div class=pic_show><img :src="showImg(film.img)"></div>
+                    <div class='info_list'>
+                        <h2>{{ film.nm }}</h2>
+                        <p><span class='person'>{{ film.wish }}</span>人想看</p>
+                        <p v-if='film.star'>主演：{{ film.star }}</p>
+                        <p v-else>主演：不详</p>
+                        <p>{{ film.rt }}上映</p>
+                    </div>
+                    <div class='btn_pre'>预售</div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
 <script>
-import axios from 'axios'
+import axios from 'axios';
+import BScroll from'better-scroll';
 
 export default {
     name: 'ComingSoon',
     data(){
         return {
-            movieList: []
+            movieList: [],
+            myStyle: {
+                height: '0px'
+            },
+            isLoading: true
         }
     },
     methods: {
@@ -32,10 +40,23 @@ export default {
         }
     },
     mounted(){
+        // 指定#comingSoon的高度
+        // document.documentElement.clientHeight --- 当前设备屏幕的高度
+        // 147 --- 顶部Header组件,.movie_menu元素和底部TabBar组件的总高度
+        this.myStyle.height = document.documentElement.clientHeight - 147 + 'px';
         axios({
             url: '/ajax/comingList?ci=1&token=&limit=10&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
         }).then(res => {
             this.movieList = res.data.coming
+            //隐藏Loading组件
+            this.isLoading = false;
+            // thi.$nextTick() --- axios函数结束时才会调用
+            this.$nextTick(() => {
+                new BScroll('#comingSoon', {
+                    fade: true,
+                    interactive: false
+                })
+            })
         })
     }
 }

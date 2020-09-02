@@ -1,5 +1,5 @@
 <template>
-    <div id='main'>
+    <div id='main' :style='myStyle'>
         <Header title='附近影院'></Header>
         <div id='content'>
             <div class='cinema_menu'>
@@ -30,6 +30,17 @@ export default {
         Header,
         TabBar,
         CinemaList
+    },
+    data(){
+        return {
+            myStyle: {
+                height: '0px'
+            }
+        }
+    },
+    mounted(){
+        // document.documentElement.clientHeight --- 当前设备屏幕的高度
+        this.myStyle.height = document.documentElement.clientHeight + 'px';
     }
 }
 </script>

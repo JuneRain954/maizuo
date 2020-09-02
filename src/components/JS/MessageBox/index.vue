@@ -1,0 +1,56 @@
+<template>
+    <div class='messageBox'>
+        <h2>{{ title }}</h2>
+        <p>{{ content }}</p>
+        <div>
+            <div @touchstart='handleCancel'>{{ cancel }}</div>
+            <div @touchstart='handleConfirm'>{{ confirm }}</div>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    name: 'MessageBox'
+}
+</script>
+
+<style lang="scss" scoped>
+    .messageBox{
+        width: 200px;
+        height: 120px;
+        border: 1px #ccc solid;
+        border-radius: 5px;
+        background: white;
+        box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.3);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: -60px 0 0 -100px;
+    }
+    .messageBox h2{
+        text-align: center;
+        line-height: 40px;
+        font-size: 18px;
+    }
+    .messageBox p{
+        text-align: center;
+        line-height: 40px;
+    }
+    .messageBox > div{
+        display: flex;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        border-top: 1px #ccc solid;
+    }
+    .messageBox > div div{
+        flex: 1;
+        text-align: center;
+        line-height: 30px;
+        border-right: 1px #ccc solid;
+    }
+    .messageBox > div div:last-child{
+        border: none;
+    }
+</style>

@@ -1,55 +1,127 @@
 <template>
     <div class='movie_body'>
-        <ul>
-            <li v-for='film in movieList' :key='film.id'>
-                <div class='pic_show'><img :src="showImg(film.img)"></div>
-                <div class='info_list'>
-                    <h2>{{ film.nm }}</h2>
-                    <p v-if='film.sc'>观众评分：<span class='grade'>{{ film.sc }}</span></p>
-                    <p v-else>暂无评分</p>
-                    <p v-if='film.star'>主演：{{ film.star }}</p>
-                    <p v-else>主演：不详</p>
-                    <p>{{ film.showInfo }}</p>
-                </div>
-                <div class='btn_mall'>购票</div>
-            </li>
-        </ul>
+        <Loading v-if='isLoading' class='loading'></Loading>
+        <div v-else id='nowPlaying' :style='myStyle'>
+            <ul>
+                <span id='update' :style='updateStyle'>{{ message }}</span>
+                <li v-for='film in movieList' :key='film.id'>
+                    <div class='pic_show' @click='handleToDetail'><img :src="showImg(film.img)"></div>
+                    <div class='info_list'>
+                        <h2><span>{{ film.nm }}</span><img v-if='film.version == "v3d imax"' src='@/assets/3D.png' class='3D'></h2>
+                        <p v-if='film.sc'>观众评分：<span class='grade'>{{ film.sc }}</span></p>
+                        <p v-else>暂无评分</p>
+                        <p v-if='film.star'>主演：{{ film.star }}</p>
+                        <p v-else>主演：不详</p>
+                        <p>{{ film.showInfo }}</p>
+                    </div>
+                    <div class='btn_mall'>购票</div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
 <script>
-import axios from 'axios'
+import axios from 'axios';
+import BScroll from 'better-scroll';
 
 export default {
     name: 'NowPlaying',
     data () {
         return {
-            movieList: []
+            movieList: [],
+            message: '',
+            myStyle: {
+                height: '0px'
+            },
+            updateStyle: {
+                display: 'none'
+            },
+            isUpdate: false,
+            isLoading: true
         }
     },
     methods: {
         showImg(data){
-            return data.replace('w.h', '64.90')
+            return data.replace('w.h', '64.90');
+        },
+        handleToDetail(){
+            console.log('toDetail');
         }
     },
     mounted(){
+        // 指定#nowPlaying的高度
+        // document.documentElement.clientHeight --- 当前设备屏幕的高度
+        // 147 --- 顶部Header组件,.movie_menu元素和底部TabBar组件的总高度
+        this.myStyle.height = document.documentElement.clientHeight - 147 + 'px';
         axios({
             url: '/ajax/movieOnInfoList?token=&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
         }).then(res => {
-            this.movieList = res.data.movieList
+            this.movieList = res.data.movieList;
+            //隐藏Loading组件
+            this.isLoading = false;
+            // this.$nextTick()函数在axios函数结束时才会调用
+            this.$nextTick(() => {
+                if(!this.isUpdate){
+                    var myBScroll = new BScroll('#nowPlaying', {
+                        tap: true,
+                        click: true,
+                        probeType:1
+                    })
+                    myBScroll.on('scroll', (pos) => {
+                        console.log('scroll');                
+                        if(pos.y > 3){
+                            this.message = '下拉可更新';
+                            this.updateStyle.display = 'inline-block';
+                        }
+                        if(pos.y > 30){
+                            this.message = '释放进行更新';
+                            this.isUpdate = true;
+                        }
+                    })
+                    myBScroll.on('touchEnd', (pos) => {
+                        console.log('touchEnd');
+                        if(this.isUpdate){
+                            console.log('更新成功');
+                            this.message = '更新成功';
+                            this.isUpdate = false;
+                            axios({
+                                url: '/ajax/movieOnInfoList?token=&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
+                            }).then(res => {
+                                this.movieList = res.data.movieList;
+                                this.$nextTick(() => {
+                                    this.message = '';
+                                    this.updateStyle.display = 'none';
+                                })
+                            })
+                        }else{
+                            this.message = '';
+                            this.updateStyle.display = 'none';
+                        }
+                    })
+                }
+            })
         })
     }
 }
 </script>
 
 <style lang="scss" scoped>
+    #nowPlaying ul #update{
+        text-align: center;
+        width: 100%;
+        padding-bottom: 6px;
+        background: #e6e6e6;
+    }
     #content .movie_body{
         flex: 1;
         overflow: auto;
+        background: #e6e6e6;
     }
     .movie_body ul{
-        margin: 0 12px;
+        padding: 0 12px;
         overflow: hidden;
+        background-color: white;
     }
     .movie_body ul li{
         margin-top: 12px;
@@ -57,6 +129,7 @@ export default {
         align-items: center;
         border-bottom: 1px solid #e6e6e6;
         padding-bottom: 10px;
+        position: relative;
     }
     .movie_body .pic_show{
         width: 64px;
@@ -78,6 +151,13 @@ export default {
         white-space: nowrap;
         text-overflow: ellipsis;
         
+    }
+    .movie_body .info_list h2 img{
+        width: 30px;
+        height: 25px;
+        position: absolute;
+        right: -40px;
+        top: -2px;
     }
     .movie_body .info_list p{
         font-size: 13px;

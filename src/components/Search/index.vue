@@ -3,7 +3,7 @@
         <div class='search_input'>
             <div class='search_input_wrapper'>
                 <i class='iconfont icon-sousuo'></i>
-                <input type="text" v-model='searchValue' @input="searchRes(searchValue)">
+                <input type="text" v-model='keyWord' @input="searchRes(keyWord)">
             </div>
             <div class='search_result'>
                 <h3>电影/电视剧/综艺</h3>
@@ -12,7 +12,7 @@
                         <div class='img'><img :src="showImg(film.img)"></div>
                         <div class='info'>
                             <p>
-                                <span>{{ film.nm }}</span>
+                                <span id='filmName'>{{ film.nm }}</span>
                                 <span v-if='film.sc != 0'>{{ film.sc }}分</span>
                                 <span v-else class='noFilmSc'>暂无评分</span>
                             </p>
@@ -33,7 +33,7 @@ export default {
     name: 'Search',
     data(){
         return {
-            searchValue: '',
+            keyWord: '',
             top3Films: []
         }
     },
@@ -42,9 +42,7 @@ export default {
             return data.replace('w.h', '64.90')
         },
         searchRes(data){
-            console.log(data)
             var URL = encodeURI(`/ajax/search?kw=${data}&cityId=286&stype=-1`)
-            console.log(URL)
             axios({
                 url: URL
             }).then(res => {
@@ -129,6 +127,13 @@ export default {
         display: flex;
         line-height: 22px;
         font-size: 12px;
+    }
+    .search_body .search_result .info p #filmName{
+        display: inline-block;
+        width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .search_body .search_result .info p:nth-of-type(1) span:nth-of-type(1){
         font-size: 18px;
