@@ -12,7 +12,7 @@
                         <p v-else>主演：不详</p>
                         <p>{{ film.rt }}上映</p>
                     </div>
-                    <div class='btn_pre'>预售</div>
+                    <div class='btn_pre' @click='handleClick'>预售</div>
                 </li>
             </ul>
         </div>
@@ -22,6 +22,7 @@
 <script>
 import axios from 'axios';
 import BScroll from'better-scroll';
+import { Toast } from 'mint-ui';
 
 export default {
     name: 'ComingSoon',
@@ -40,6 +41,12 @@ export default {
         },
         handleToDetail(id){
             this.$router.push(`detail/2/${id}`);
+        },
+        handleClick(){
+            Toast({
+                message: '该功能尚未开发 (ಥ _ ಥ)',
+                duration: 1000
+            })
         }
     },
     mounted(){

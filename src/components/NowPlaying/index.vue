@@ -14,7 +14,7 @@
                         <p v-else>主演：不详</p>
                         <p>{{ film.showInfo }}</p>
                     </div>
-                    <div class='btn_mall'>购票</div>
+                    <div class='btn_mall' @click='handleClick'>购票</div>
                 </li>
             </ul>
         </div>
@@ -24,6 +24,7 @@
 <script>
 import axios from 'axios';
 import BScroll from 'better-scroll';
+import { Toast } from 'mint-ui';
 
 export default {
     name: 'NowPlaying',
@@ -47,6 +48,13 @@ export default {
         },
         handleToDetail(id){
             this.$router.push(`detail/1/${id}`);
+        },
+        handleClick(){
+            Toast({
+                message: '该功能尚未开发 ψ(._. )>',
+                position: 'middle',
+                duration: 1000
+            });
         }
     },
     mounted(){

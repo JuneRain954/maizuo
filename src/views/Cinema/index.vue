@@ -3,13 +3,13 @@
         <Header title='附近影院'></Header>
         <div id='content'>
             <div class='cinema_menu'>
-                <div class="city_switch">
+                <div class="city_switch" @click='handleClick'>
                     全城<i class='iconfont icon-below-s'></i>
                 </div>
-                <div class="brand_switch">
+                <div class="brand_switch" @click='handleClick'>
                     品牌<i class='iconfont icon-below-s'></i>
                 </div>
-                <div class="feature_switch">
+                <div class="feature_switch" @click='handleClick'>
                     特色<i class='iconfont icon-below-s'></i>
                 </div>
             </div>
@@ -22,7 +22,8 @@
 <script>
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
-import CinemaList from '@/components/CinemaList'
+import CinemaList from '@/components/CinemaList';
+import { Toast } from 'mint-ui';
 
 export default {
     name: 'Cinema',
@@ -36,6 +37,14 @@ export default {
             myStyle: {
                 height: '0px'
             }
+        }
+    },
+    methods: {
+        handleClick(){
+            Toast({
+                message: '该功能尚未开发 (●ˇ∀ˇ●)',
+                duration: 1000
+            })
         }
     },
     mounted(){

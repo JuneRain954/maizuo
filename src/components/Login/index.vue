@@ -7,18 +7,28 @@
             <input type="password" class='login_text' placeholder='密码'>
         </div>
         <div class='login_btn'>
-            <input type="submit" value='登录'>
+            <input type="submit" value='登录' @click='handleClick'>
         </div>
         <div class='login_link'>
-            <a href="#">立即注册</a>
-            <a href="#">找回密码</a>
+            <a href="#" @click='handleClick'>立即注册</a>
+            <a href="#" @click='handleClick'>找回密码</a>
         </div>
     </div>
 </template>
 
 <script>
+import { Toast } from 'mint-ui';
+
 export default {
-    name: 'Login'
+    name: 'Login',
+    methods: {
+        handleClick(){
+            Toast({
+                message: '该功能尚未开发 (⊙x⊙;)',
+                duration: 1000
+            })
+        }
+    }
 }
 </script>
 
