@@ -2,7 +2,7 @@
     <div id='main' :style='myStyle'>
         <Header ref='myheader'></Header>
         <div id='content'>
-            <div class='movie_menu'>
+            <div class='movie_menu' v-show='isShowMovieMenu'>
                 <router-link to="/movie/city" tag='div' activeClass='active' class='city_name'>
                     <span>{{ $store.state.city.nm }}</span><i class='iconfont icon-below-s'></i>
                 </router-link>
@@ -26,6 +26,7 @@
 <script>
 import Header from '@/components/Header';
 import TabBar from '@/components/TabBar';
+import { mapState } from 'vuex';
 
 export default {
     name: 'Movie',
@@ -39,6 +40,9 @@ export default {
                 height: '0px'
             }
         }
+    },
+    computed: {
+        ...mapState(['isShowMovieMenu'])
     },
     mounted(){
         // document.documentElement.clientHeight --- 当前设备屏幕的高度

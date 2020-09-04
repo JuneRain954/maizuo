@@ -5,12 +5,17 @@ import store from './store'
 // 引入mint-ui
 import MintUI from 'mint-ui'
 import 'mint-ui/lib/style.css'
+//引入v-touch
+import VueTouch from 'vue-touch'
+
 //把Loading组件注册成全局组件
 import Loading from '@/components/Loading'
 Vue.component('Loading', Loading)
 
 Vue.config.productionTip = false
+
 Vue.use(MintUI)
+Vue.use(VueTouch, {name: 'v-touch'})
 
 new Vue({
   router,

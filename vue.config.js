@@ -1,5 +1,6 @@
 // 只要改了配置文件，必须重新开启服务
 module.exports = {
+    publicPath: '/yjh',
     devServer: {
       proxy: {
         //请求类型：如ajax数据请求：'/ajax'

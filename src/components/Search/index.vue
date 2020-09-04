@@ -3,7 +3,7 @@
         <div class='search_input'>
             <div class='search_input_wrapper'>
                 <i class='iconfont icon-sousuo'></i>
-                <input type="text" v-model='keyWord' @input="searchRes(keyWord)">
+                <input type="text" v-model='keyWord' @input="searchRes(keyWord)" @click='showMsg'>
             </div>
             <div class='search_result'>
                 <h3>电影/电视剧/综艺</h3>
@@ -28,6 +28,7 @@
 
 <script>
 import axios from 'axios'
+import { Toast } from 'mint-ui';
 
 export default {
     name: 'Search',
@@ -46,11 +47,15 @@ export default {
             axios({
                 url: URL
             }).then(res => {
-                console.log(res.data)
                 if(res.data.movies){
-                    console.log(res.data.movies.list)
                     this.top3Films = res.data.movies.list
                 }
+            })
+        },
+        showMsg(){
+            Toast({
+                message: '该接口失效了，搜不到结果了，我也很无奈啊啊啊 o(≧口≦)o',
+                duration: 1000
             })
         }
     }
