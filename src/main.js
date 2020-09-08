@@ -12,6 +12,10 @@ import VueTouch from 'vue-touch'
 import Loading from '@/components/Loading'
 Vue.component('Loading', Loading)
 
+// 把Loader组件注册成全局组件
+import Loader from '@/components/Loader';
+Vue.component('Loader', Loader);
+
 Vue.config.productionTip = false
 
 Vue.use(MintUI)

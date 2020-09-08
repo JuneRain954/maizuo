@@ -13,7 +13,7 @@ export default {
         // 动态切换该组件的标题
         title: {
             type: String,       // 标题的类型
-            default: '黄议员电影'  // 标题的默认值
+            default: '喵喵电影'  // 标题的默认值
         }
     }
 }

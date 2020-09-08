@@ -3,7 +3,7 @@
         <div class='search_input'>
             <div class='search_input_wrapper'>
                 <i class='iconfont icon-sousuo'></i>
-                <input type="text" v-model='keyWord' @input="searchRes(keyWord)" @click='showMsg'>
+                <input type="text" @click='showMsg'>
             </div>
             <div class='search_result'>
                 <h3>电影/电视剧/综艺</h3>
@@ -43,19 +43,19 @@ export default {
             return data.replace('w.h', '64.90')
         },
         searchRes(data){
-            var URL = encodeURI(`/ajax/search?kw=${data}&cityId=286&stype=-1`)
-            axios({
-                url: URL
-            }).then(res => {
-                if(res.data.movies){
-                    this.top3Films = res.data.movies.list
-                }
-            })
+            // var URL = encodeURI(`/ajax/search?kw=${data}&cityId=286&stype=-1`)
+            // axios({
+            //     url: URL
+            // }).then(res => {
+            //     if(res.data.movies){
+            //         this.top3Films = res.data.movies.list
+            //     }
+            // })
         },
         showMsg(){
             Toast({
                 message: '该接口失效了，搜不到结果了，我也很无奈啊啊啊 o(≧口≦)o',
-                duration: 1000
+                duration: 1500
             })
         }
     }

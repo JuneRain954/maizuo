@@ -18,6 +18,7 @@
                     <div class='btn_pre' @click='handleClick'>预售</div>
                 </li>
             </ul>
+            <Loader v-show='isLoadMore'></Loader>
         </div>
     </div>
 </template>
@@ -36,7 +37,13 @@ export default {
                 height: '0px'
             },
             isLoading: true,
-            oldCityId: -1
+            oldCityId: -1,
+            myBScroll: null,
+            lastPos: 0,
+            isFirstActivated: true,
+            isLoadMore: false,
+            pageNum: 1,
+            total: 0
         }
     },
     methods: {
@@ -57,9 +64,76 @@ export default {
                 message: '该功能尚未开发 (ಥ _ ಥ)',
                 duration: 1000
             })
+        },
+        loadMore(){
+            if(this.total == this.movieList.length){
+                this.pageNum = 1;
+                Toast({
+                    message: '电影全部加载完噜~',
+                    duration: 1000
+                })
+                return;
+            }
+            var curCityId = localStorage.getItem('curCityId');
+            if(!curCityId){
+                // 默认使用广州的相关电影数据
+                curCityId = 440100;
+            }
+            this.isLoadMore = true;
+            this.pageNum++;
+            axios({
+                url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=${this.pageNum}&pageSize=10&type=2&k=685867`,
+                headers: {
+                    'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
+                    'X-Host': 'mall.film-ticket.film.list'
+                }
+            }).then(res => {
+                setTimeout(() => {
+                    this.movieList = [...this.movieList, ...res.data.data.films];
+                    //隐藏Loader组件
+                    this.isLoadMore = false;
+                }, 200);
+            })
+        }
+    },
+    watch: {
+        movieList: {
+            handler(){
+                this.$nextTick(() => {
+                    if(this.myBScroll){
+                        // 每次movieList数据变化后就重新计算better-scroll的高度
+                        this.myBScroll.refresh();
+                        // 避免重复绑定，每次重新初始化better-scroll前都先把前一个destory掉
+                        this.myBScroll.destroy();
+                    }
+                    this.myBScroll = new BScroll('#comingSoon', {
+                        fade: true,
+                        interactive: false,
+                        click: true,
+                        probeType: 1,
+                        startY: this.lastPos,
+                        bounce: true,
+                        pullUpLoad: {
+                            threshold: -80,
+                            stop: 40
+                        }
+                    });
+                    this.myBScroll.on('scroll', (pos) => {
+                        this.lastPos = pos.y - 40;
+                    })
+                    this.myBScroll.on('pullingUp', () => {
+                        this.loadMore();
+                        this.myBScroll.finishPullUp();
+                    })
+                })
+            }
         }
     },
     activated() {
+        if(this.isFirstActivated){
+            this.isFirstActivated = false;
+            return;
+        }
         var curCityId = localStorage.getItem('curCityId');
         if(!curCityId){
             // 默认使用广州的相关电影数据
@@ -69,29 +143,21 @@ export default {
             this.oldCityId = curCityId;
             this.isLoading = true;
             axios({
-                // url: '/ajax/comingList?ci=1&token=&limit=10&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
                 url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=1&pageSize=10&type=2&k=685867`,
                 headers: {
                     'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
                     'X-Host': 'mall.film-ticket.film.list'
                 }
             }).then(res => {
-                // this.movieList = res.data.coming
                 this.movieList = res.data.data.films;
+                this.total = res.data.data.total;
                 //隐藏Loading组件
                 this.isLoading = false;
-                // thi.$nextTick() --- axios函数结束时才会调用
-                this.$nextTick(() => {
-                    new BScroll('#comingSoon', {
-                        fade: true,
-                        interactive: false,
-                        click: true
-                    })
-                })
             })
         }
     },
     mounted(){
+        this.isFirstActivated = true;
         // 指定#comingSoon的高度
         // document.documentElement.clientHeight --- 当前设备屏幕的高度
         // 147 --- 顶部Header组件,.movie_menu元素和底部TabBar组件的总高度
@@ -102,25 +168,16 @@ export default {
             curCityId = 440100;
         }
         axios({
-            // url: '/ajax/comingList?ci=1&token=&limit=10&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
             url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=1&pageSize=10&type=2&k=685867`,
             headers: {
                 'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
                 'X-Host': 'mall.film-ticket.film.list'
             }
         }).then(res => {
-            // this.movieList = res.data.coming
             this.movieList = res.data.data.films;
+            this.total = res.data.data.total;
             //隐藏Loading组件
             this.isLoading = false;
-            // thi.$nextTick() --- axios函数结束时才会调用
-            this.$nextTick(() => {
-                new BScroll('#comingSoon', {
-                    fade: true,
-                    interactive: false,
-                    click: true
-                })
-            })
         })
     }
 }
@@ -145,6 +202,7 @@ export default {
     .movie_body .pic_show{
         width: 64px;
         height: 90px;
+        overflow: hidden;
     }
     .movie_body .pic_show img{
         width: 100%;

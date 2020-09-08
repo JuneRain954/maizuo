@@ -68,14 +68,18 @@ export default {
             });
             localStorage.setItem('curCityName', name);
             localStorage.setItem('curCityId', id);
-            // 显示上面“正在热映”所在的整个导航栏
+            // 显示“正在热映”所在的整个导航栏
             this.$store.commit('controlMovieMenu', true);
             this.$router.push('/movie');
         }
     },
     activated() {
-        // 隐藏上面“正在热映”所在的整个导航栏
+        // 隐藏“正在热映”所在的整个导航栏
         this.$store.commit('controlMovieMenu', false);
+    },
+    deactivated() {
+        // 显示“正在热映”所在的整个导航栏
+        this.$store.commit('controlMovieMenu', true);
     },
     mounted(){
         var citiesList = localStorage.getItem('citiesList');

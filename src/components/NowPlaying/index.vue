@@ -2,25 +2,28 @@
     <div class='movie_body'>
         <Loading v-if='isLoading' class='loading'></Loading>
         <div v-else id='nowPlaying' :style='myStyle'>
-            <ul>
-                <span id='update' :style='updateStyle'>{{ message }}</span>
-                <li v-for='film in movieList' :key='film.filmId'>
-                    <v-touch @tap='handleToDetail(film.filmId)'>
-                        <div class='pic_show'><img :src="film.poster"></div>
-                    </v-touch>
-                    <div class='info_list'>
+            <div>
+                <p id='update' :style='updateStyle'>{{ message }}</p>
+                <ul>
+                    <li v-for='film in movieList' :key='film.filmId'>
                         <v-touch @tap='handleToDetail(film.filmId)'>
-                            <h2><span>{{ film.name }}</span><img v-if='film.filmType.name == "3D"' src='@/assets/3D.png' class='3D'></h2>
+                            <div class='pic_show'><img :src="film.poster"></div>
                         </v-touch>
-                        <p v-if='film.grade'>观众评分：<span class='grade'>{{ film.grade }}</span></p>
-                        <p v-else>暂无评分</p>
-                        <p v-if='film.actors'>主演：{{ showActors(film.actors) }}</p>
-                        <p v-else>主演：不详</p>
-                        <p>{{ film.nation }} | {{ film.runtime }}分钟</p>
-                    </div>
-                    <div class='btn_mall' @click='handleClick'>购票</div>
-                </li>
-            </ul>
+                        <div class='info_list'>
+                            <v-touch @tap='handleToDetail(film.filmId)'>
+                                <h2><span>{{ film.name }}</span><img v-if='film.filmType.name == "3D"' src='@/assets/3D.png' class='3D'></h2>
+                            </v-touch>
+                            <p v-if='film.grade'>观众评分：<span class='grade'>{{ film.grade }}</span></p>
+                            <p v-else>暂无评分</p>
+                            <p v-if='film.actors'>主演：{{ showActors(film.actors) }}</p>
+                            <p v-else>主演：不详</p>
+                            <p>{{ film.nation }} | {{ film.runtime }}分钟</p>
+                        </div>
+                        <div class='btn_mall' @click='handleClick'>购票</div>
+                    </li>
+                </ul>
+            </div>
+            <Loader v-show='isLoadMore'></Loader>
         </div>
     </div>
 </template>
@@ -40,11 +43,22 @@ export default {
                 height: '0px'
             },
             updateStyle: {
-                display: 'none'
+                height: '0px',
+                padding: '0',
+                border: 'none',
+                marginBottom: '0px',
+                transition: ''
             },
             isUpdate: false,
             isLoading: true,
-            oldCityId: -1
+            oldCityId: -1,
+            isLoadMore: false,
+            pageNum: 1,
+            total: 0,
+            isFirstActivated: true,
+            lastPos: 0,
+            myBScroll: null,
+            timerId: null
         }
     },
     methods: {
@@ -65,47 +79,161 @@ export default {
                 duration: 1000
             });
         },
-        myScrollEvent(pos){
-            if(pos.y > 3){
-                this.message = '下拉可更新';
-                this.updateStyle.display = 'inline-block';
+        updateMovieList(){
+            // 顶部下拉刷新数据
+            this.pageNum = 1;
+            var curCityId = localStorage.getItem('curCityId');
+            if(!curCityId){
+                // 默认使用广州的相关电影数据
+                curCityId = 440100;
             }
-            if(pos.y > 30){
-                this.message = '释放进行更新';
-                this.isUpdate = true;
-            }
-        },
-        myTouchEndEvent(pos){
-            if(pos.y > 30){
-                this.isUpdate = false;
-                this.message = '更新成功';
-                var curCityId = localStorage.getItem('curCityId');
-                if(!curCityId){
-                    // 默认使用广州的相关电影数据
-                    curCityId = 440100;
+            axios({
+                url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=1&pageSize=10&type=1&k=6855649`,
+                headers: {
+                    'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
+                    'X-Host': 'mall.film-ticket.film.list'
                 }
-                axios({
-                    // url: '/ajax/movieOnInfoList?token=&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
-                    url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=1&pageSize=10&type=1&k=6855649`,
-                    headers: {
-                        'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
-                        'X-Host': 'mall.film-ticket.film.list'
-                    }
-                }).then(res => {
-                    // this.movieList = res.data.movieList;
-                    this.movieList = res.data.data.films;
-                    this.$nextTick(() => {
-                        this.message = '';
-                        this.updateStyle.display = 'none';
+            }).then(res => {
+                this.movieList = res.data.data.films;
+                this.$nextTick(() => {
+                    this.controlPullDownTip(false);
+                    Toast({
+                        message: '更新成功',
+                        duration: 1000
                     })
                 })
+            })
+        },
+        loadMore(){
+            // 底部上拉加载更多数据
+            if(this.total == this.movieList.length){
+                this.pageNum = 1;
+                Toast({
+                    message: '电影全部加载完噜~',
+                    duration: 1000
+                })
+                return;
+            }
+            var curCityId = localStorage.getItem('curCityId');
+            this.isLoadMore = true;
+            this.pageNum++;
+            axios({
+                url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=${this.pageNum}&pageSize=10&type=1&k=6855649`,
+                headers: {
+                    'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
+                    'X-Host': 'mall.film-ticket.film.list'
+                }
+            }).then(res => {
+                setTimeout(() => {
+                    this.movieList = [...this.movieList, ...res.data.data.films];
+                    this.isLoadMore = false;
+                }, 200);
+            })
+        },
+        myScrollEvent(pos){
+            if(pos.y > 5){
+                this.message = '下拉刷新';
+                this.controlPullDownTip(true);
+            }
+            if(pos.y > 80){
+                this.message = '释放进行刷新';
+            }
+        },
+        controlPullDownTip(ishow){
+            if(ishow){
+                this.updateStyle.height = '14px';
+                this.updateStyle.padding = '8px 0';
+                this.updateStyle.border = '1px dashed #7facc9';
+                this.updateStyle.marginBottom = '6px';
+                this.updateStyle.transition = 'height 1s';
             }else{
-                this.message = '';
-                this.updateStyle.display = 'none';
+                while(this.updateStyle.height == '14px'){
+                    this.message = '';
+                    this.updateStyle.height = '0px';
+                    this.updateStyle.padding = '0';
+                    this.updateStyle.border = 'none';
+                    this.updateStyle.marginBottom = '0px';
+                    this.updateStyle.transition = 'height 0.2s';
+                }
+            }
+        }
+    },
+    watch: {
+        movieList: {
+            // 每次movieList发生变化就初始化better-scroll
+            handler(){
+                this.$nextTick(() => {
+                    if(this.myBScroll){
+                        // 每次movieList数据变化后就重新计算better-scroll的高度
+                        this.myBScroll.refresh();
+                        // 避免重复绑定，每次重新初始化better-scroll前都先把前一个destory掉
+                        this.myBScroll.destroy();
+                    }
+                    this.myBScroll = new BScroll('#nowPlaying', {
+                        tap: true,
+                        click: true,
+                        probeType:1,
+                        startY: this.lastPos,
+                        pullUpLoad: {
+                            threshold: -80,
+                            stop: 40
+                        },
+                        pullDownRefresh: {
+                            threshold: 80,
+                            stop: 50
+                        },
+                        bounce: true
+                    })
+                    this.myBScroll.on('scroll', (pos) => {     
+                        this.lastPos = pos.y - 40;
+                        this.myScrollEvent(pos);
+                    })
+                    this.myBScroll.on('scrollEnd', () => {
+                        this.$nextTick(() => {
+                            this.controlPullDownTip(false);
+                            if(this.timerId){
+                                return;
+                            }
+                            this.timerId = setInterval(() => {
+                                this.controlPullDownTip(false);
+                                if(this.updateStyle.height == '0px'){
+                                    clearInterval(this.timerId);
+                                    this.timerId = null;
+                                }
+                            }, 200);
+                            setTimeout(() => {
+                                if(this.timerId){
+                                    return;
+                                }
+                                this.timerId = setInterval(() => {
+                                    this.controlPullDownTip(false);
+                                    if(this.updateStyle.height == '0px'){
+                                        clearInterval(this.timerId);
+                                        this.timerId = null;
+                                    }
+                                }, 200);
+                            }, 2000);
+                        })
+                    })
+                    // 上拉加载
+                    this.myBScroll.on('pullingUp', () => {
+                        this.loadMore();
+                        this.myBScroll.finishPullUp();
+                    })
+                    // 下拉刷新
+                    this.myBScroll.on('pullingDown', () => {
+                        this.updateMovieList();
+                        this.myBScroll.finishPullDown();
+                    })
+                })
             }
         }
     },
     activated() {
+        if(this.isFirstActivated){
+            this.isFirstActivated = false;
+            return;
+        }
         var curCityId = localStorage.getItem('curCityId');
         if(!curCityId){
             // 默认使用广州的相关电影数据
@@ -116,36 +244,20 @@ export default {
             this.isLoading = true;
             // 城市定位改变了才刷新数据
             axios({
-                // url: '/ajax/movieOnInfoList?token=&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
                 url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=1&pageSize=10&type=1&k=6855649`,
                 headers: {
                     'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
                     'X-Host': 'mall.film-ticket.film.list'
                 }
             }).then(res => {
-                // this.movieList = res.data.movieList;
                 this.movieList = res.data.data.films;
+                this.total = res.data.data.total;
                 this.isLoading = false;
-                // this.$nextTick()函数在axios函数结束时才会调用
-                this.$nextTick(() => {
-                    if(!this.isUpdate){
-                        var myBScroll = new BScroll('#nowPlaying', {
-                            tap: true,
-                            click: true,
-                            probeType:1
-                        })
-                        myBScroll.on('scroll', (pos) => {     
-                            this.myScrollEvent(pos);
-                        })
-                        myBScroll.on('touchEnd', (pos) => {
-                            this.myTouchEndEvent(pos);
-                        })
-                    }
-                })
             })
         }
     },
     mounted(){
+        this.isFirstActivated = true;
         // 指定#nowPlaying的高度
         // document.documentElement.clientHeight --- 当前设备屏幕的高度
         // 147 --- 顶部Header组件,.movie_menu元素和底部TabBar组件的总高度
@@ -156,44 +268,32 @@ export default {
             curCityId = 440100;
         }
         axios({
-            // url: '/ajax/movieOnInfoList?token=&optimus_uuid=4ACD38B0DD3511EA92B9D96B8ADBA8017EC94C4A99EE4DFB93EA3EDFB22CF174&optimus_risk_level=71&optimus_code=10'
             url: `https://m.maizuo.com/gateway?cityId=${curCityId}&pageNum=1&pageSize=10&type=1&k=6855649`,
             headers: {
                 'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.0.4","e":"1597822477630398119837699"}',
                 'X-Host': 'mall.film-ticket.film.list'
             }
         }).then(res => {
-            // this.movieList = res.data.movieList;
             this.movieList = res.data.data.films;
+            this.total = res.data.data.total;
             //隐藏Loading组件
             this.isLoading = false;
-            // this.$nextTick()函数在axios函数结束时才会调用
-            this.$nextTick(() => {
-                if(!this.isUpdate){
-                    var myBScroll = new BScroll('#nowPlaying', {
-                        tap: true,
-                        click: true,
-                        probeType:1
-                    })
-                    myBScroll.on('scroll', (pos) => {       
-                        this.myScrollEvent(pos);
-                    })
-                    myBScroll.on('touchEnd', (pos) => {
-                        this.myTouchEndEvent(pos);
-                    })
-                }
-            })
         })
     }
 }
 </script>
 
 <style lang="scss" scoped>
-    #nowPlaying ul #update{
+    #nowPlaying #update{
         text-align: center;
-        width: 100%;
-        padding-bottom: 6px;
-        background: #e6e6e6;
+        line-height: 14px;
+        font-weight: 700;
+        color: #7facc9;
+        width: 120px;
+        margin: 0 auto;
+        background: rgba(243, 212, 192, 0.5);
+        border-radius: 10px;
+        overflow: hidden;
     }
     #content .movie_body{
         flex: 1;
@@ -216,6 +316,7 @@ export default {
     .movie_body .pic_show{
         width: 64px;
         height: 90px;
+        overflow: hidden;
     }
     .movie_body .pic_show img{
         width: 100%;
